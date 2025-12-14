@@ -1,0 +1,162 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* Updated to use teal, emerald, and green color palette with lighter backgrounds */
+:root {
+  /* Backgrounds & Cards - Lightest teal shades */
+  --background: #e8fcfc; /* Dark Teal 50 */
+  --foreground: #0b5b5a; /* Dark Teal 800 */
+  --card: #ffffff;
+  --card-foreground: #0b5b5a;
+  --popover: #ffffff;
+  --popover-foreground: #0b5b5a;
+
+  /* Primary - Dark Teal */
+  --primary: #1be4e1; /* Dark Teal 500 */
+  --primary-foreground: #ffffff;
+
+  /* Secondary - Soft Fawn */
+  --secondary: #f5ead6; /* Soft Fawn 100 */
+  --secondary-foreground: #523c14; /* Soft Fawn 800 */
+
+  /* Muted */
+  --muted: #d1faf9; /* Dark Teal 100 */
+  --muted-foreground: #108987; /* Dark Teal 700 */
+
+  /* Accent - Medium Jungle Green */
+  --accent: #0df269; /* Medium Jungle 500 */
+  --accent-foreground: #ffffff;
+
+  /* Destructive */
+  --destructive: #cd9732; /* Soft Fawn 500 */
+  --destructive-foreground: #ffffff;
+
+  /* Borders & Inputs */
+  --border: #a4f4f3; /* Dark Teal 200 */
+  --input: #a4f4f3;
+  --ring: #48eae7; /* Dark Teal 400 */
+
+  /* Charts */
+  --chart-1: #1be4e1; /* Dark Teal 500 */
+  --chart-2: #17e8a6; /* Dark Emerald 500 */
+  --chart-3: #0df269; /* Medium Jungle 500 */
+  --chart-4: #5cb847; /* Moss Green 500 */
+  --chart-5: #cd9732; /* Soft Fawn 500 */
+
+  --radius: 0.625rem;
+
+  /* Sidebar */
+  --sidebar: #ffffff;
+  --sidebar-foreground: #0b5b5a;
+  --sidebar-primary: #1be4e1;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #d1faf9;
+  --sidebar-accent-foreground: #0b5b5a;
+  --sidebar-border: #a4f4f3;
+  --sidebar-ring: #48eae7;
+}
+
+/* Dark mode with darkest shades for backgrounds */
+.dark {
+  /* Backgrounds & Cards - Darkest teal shades */
+  --background: #052e2d; /* Dark Teal 900 */
+  --foreground: #d1faf9; /* Dark Teal 100 */
+  --card: #0b5b5a; /* Dark Teal 800 */
+  --card-foreground: #d1faf9;
+  --popover: #0b5b5a;
+  --popover-foreground: #d1faf9;
+
+  /* Primary - Lighter teal for visibility */
+  --primary: #76efed; /* Dark Teal 300 */
+  --primary-foreground: #04201f; /* Dark Teal 950 */
+
+  /* Secondary - Soft Fawn */
+  --secondary: #523c14; /* Soft Fawn 800 */
+  --secondary-foreground: #f5ead6; /* Soft Fawn 100 */
+
+  /* Muted */
+  --muted: #108987; /* Dark Teal 700 */
+  --muted-foreground: #a4f4f3; /* Dark Teal 200 */
+
+  /* Accent - Medium Jungle Green */
+  --accent: #6ef7a5; /* Medium Jungle 300 */
+  --accent-foreground: #02220f; /* Medium Jungle 950 */
+
+  /* Destructive */
+  --destructive: #d7ac5b; /* Soft Fawn 400 */
+  --destructive-foreground: #1d1507; /* Soft Fawn 950 */
+
+  /* Borders & Inputs */
+  --border: #15b7b4; /* Dark Teal 600 */
+  --input: #15b7b4;
+  --ring: #a4f4f3; /* Dark Teal 200 */
+
+  /* Charts - Adjusted for dark mode */
+  --chart-1: #76efed; /* Dark Teal 300 */
+  --chart-2: #74f1ca; /* Dark Emerald 300 */
+  --chart-3: #6ef7a5; /* Medium Jungle 300 */
+  --chart-4: #9dd491; /* Moss Green 300 */
+  --chart-5: #e1c084; /* Soft Fawn 300 */
+
+  /* Sidebar */
+  --sidebar: #0b5b5a;
+  --sidebar-foreground: #d1faf9;
+  --sidebar-primary: #76efed;
+  --sidebar-primary-foreground: #04201f;
+  --sidebar-accent: #108987;
+  --sidebar-accent-foreground: #d1faf9;
+  --sidebar-border: #15b7b4;
+  --sidebar-ring: #a4f4f3;
+}
+
+@theme inline {
+  --font-sans: "Geist", "Geist Fallback";
+  --font-mono: "Geist Mono", "Geist Mono Fallback";
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
