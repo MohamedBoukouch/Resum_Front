@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -10,10 +9,11 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card } from "@/components/ui/card"
 import { AlertCircle } from "lucide-react"
+import { authAPI, setAuthToken } from "@/lib/api"
 
 export function LoginForm() {
   const router = useRouter()
-  const [email, setEmail] = useState("")
+  const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
@@ -24,22 +24,23 @@ export function LoginForm() {
     setIsLoading(true)
 
     try {
-      // Simulate login - in production, call your auth API
-      if (!email || !password) {
+      if (!username || !password) {
         throw new Error("Please fill in all fields")
       }
-      if (!email.includes("@")) {
-        throw new Error("Please enter a valid email")
-      }
-      if (password.length < 6) {
-        throw new Error("Password must be at least 6 characters")
-      }
 
-      // Simulate successful login
-      localStorage.setItem("user", JSON.stringify({ email, loggedInAt: new Date().toISOString() }))
+      // ✅ CALL FASTAPI LOGIN
+      const response = await authAPI.login({
+        username,
+        password,
+      })
+
+      // ✅ SAVE TOKEN
+      setAuthToken(response.access_token)
+
+      // ✅ REDIRECT
       router.push("/dashboard")
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Login failed")
+    } catch (err: any) {
+      setError(err.message || "Invalid username or password")
     } finally {
       setIsLoading(false)
     }
@@ -56,24 +57,19 @@ export function LoginForm() {
         )}
 
         <div className="space-y-2">
-          <Label htmlFor="email" className="text-foreground">
-            Email Address
-          </Label>
+          <Label htmlFor="username">Username</Label>
           <Input
-            id="email"
-            type="email"
-            placeholder="you@example.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            id="username"
+            type="text"
+            placeholder="hassanOuahmane2"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
             disabled={isLoading}
-            className="bg-background border-border text-foreground placeholder:text-muted-foreground"
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="password" className="text-foreground">
-            Password
-          </Label>
+          <Label htmlFor="password">Password</Label>
           <Input
             id="password"
             type="password"
@@ -81,15 +77,10 @@ export function LoginForm() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             disabled={isLoading}
-            className="bg-background border-border text-foreground placeholder:text-muted-foreground"
           />
         </div>
 
-        <Button
-          type="submit"
-          disabled={isLoading}
-          className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
-        >
+        <Button type="submit" disabled={isLoading} className="w-full">
           {isLoading ? "Signing in..." : "Sign In"}
         </Button>
 
@@ -98,16 +89,14 @@ export function LoginForm() {
             <div className="w-full border-t border-border" />
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="bg-card px-2 text-muted-foreground">Don't have an account?</span>
+            <span className="bg-card px-2 text-muted-foreground">
+              Don't have an account?
+            </span>
           </div>
         </div>
 
         <Link href="/signup" className="block">
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full border-border text-foreground hover:bg-muted bg-transparent"
-          >
+          <Button variant="outline" className="w-full">
             Create Account
           </Button>
         </Link>

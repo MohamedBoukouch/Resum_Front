@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 4, "column": 0}, "map": {"version":3,"sources":["file:///D:/resume_front/app/summarize/layout.tsx"],"sourcesContent":["import type React from \"react\"\r\n\r\nexport default function SummarizeLayout({\r\n  children,\r\n}: {\r\n  children: React.ReactNode\r\n}) {\r\n  return children\r\n}\r\n"],"names":[],"mappings":";;;;AAEe,SAAS,gBAAgB,EACtC,QAAQ,EAGT;IACC,OAAO;AACT"}}]
+}
