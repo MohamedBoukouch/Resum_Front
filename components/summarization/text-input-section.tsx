@@ -1,18 +1,21 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useRef, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Sparkles, Upload, X } from "lucide-react"
 import { useSummarizationStore } from "@/lib/store/summarization-store"
+import { summarizationAPI } from "@/lib/api"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { AlertCircle } from "lucide-react"
 
 export function TextInputSection() {
   const [inputText, setInputText] = useState("")
   const [isLoading, setIsLoading] = useState(false)
-  const [uploadedFiles, setUploadedFiles] = useState<{ name: string; content: string }[]>([])
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([])
+  const [error, setError] = useState<string | null>(null)
   const [textButtonClicked, setTextButtonClicked] = useState(false)
   const [fileButtonClicked, setFileButtonClicked] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -32,41 +35,38 @@ export function TextInputSection() {
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.altKey && !e.shiftKey) {
-      // Enter alone: submit
       if (!isLoading && inputText.trim().length > 0) {
         e.preventDefault()
         handleTextSubmit()
       }
     }
-    // Alt+Enter or Shift+Enter: allow new line (default behavior - do nothing)
   }
 
   const handleTextSubmit = async () => {
     if (!inputText.trim()) {
-      alert("Please enter some text to summarize")
+      setError("Please enter some text to summarize.")
       return
     }
 
     setTextButtonClicked(true)
     setTimeout(() => setTextButtonClicked(false), 300)
-
     setIsLoading(true)
+    setError(null)
+    const startTime = Date.now()
+
     try {
-      await new Promise((resolve) => setTimeout(resolve, 2000))
+      const result = await summarizationAPI.generateSummary(inputText)
+      const endTime = Date.now()
 
-      const sentences = inputText.split(/[.!?]+/).filter((s) => s.trim().length > 0)
-      const summaryLength = Math.ceil(sentences.length * 0.3)
-      const summary = sentences.slice(0, Math.max(summaryLength, 1)).join(". ") + "."
-
-      setSummary(summary)
+      setSummary(result.summary)
       setMetadata({
-        originalWordCount: inputText.split(/\s+/).length,
-        summaryWordCount: summary.split(/\s+/).length,
-        compressionRatio: ((1 - summary.split(/\s+/).length / inputText.split(/\s+/).length) * 100).toFixed(1),
-        processingTime: "2s",
+        originalWordCount: result.original_text.split(/\s+/).length,
+        summaryWordCount: result.summary.split(/\s+/).length,
+        compressionRatio: result.compression_rate.toFixed(1),
+        processingTime: `${((endTime - startTime) / 1000).toFixed(1)}s`,
       })
-    } catch (error) {
-      alert("Error generating summary. Please try again.")
+    } catch (err: any) {
+      setError(err.message || "An unknown error occurred.")
     } finally {
       setIsLoading(false)
     }
@@ -74,31 +74,32 @@ export function TextInputSection() {
 
   const handleFileSubmit = async () => {
     if (uploadedFiles.length === 0) {
-      alert("Please upload files to summarize")
+      setError("Please upload a file to summarize.")
       return
     }
 
     setFileButtonClicked(true)
     setTimeout(() => setFileButtonClicked(false), 300)
-
     setIsLoading(true)
+    setError(null)
+    const startTime = Date.now()
+
     try {
-      await new Promise((resolve) => setTimeout(resolve, 2000))
+      const file = uploadedFiles[0] // Handle one file for now
+      const result = await summarizationAPI.uploadFile(file)
+      const endTime = Date.now()
 
-      const combinedText = uploadedFiles.map((f) => f.content).join("\n\n")
-      const sentences = combinedText.split(/[.!?]+/).filter((s) => s.trim().length > 0)
-      const summaryLength = Math.ceil(sentences.length * 0.3)
-      const summary = sentences.slice(0, Math.max(summaryLength, 1)).join(". ") + "."
-
-      setSummary(summary)
+      setSummary(result.summary)
       setMetadata({
-        originalWordCount: combinedText.split(/\s+/).length,
-        summaryWordCount: summary.split(/\s+/).length,
-        compressionRatio: ((1 - summary.split(/\s+/).length / combinedText.split(/\s+/).length) * 100).toFixed(1),
-        processingTime: "2s",
+        originalWordCount: result.original_text.split(/\s+/).length,
+        summaryWordCount: result.summary.split(/\s+/).length,
+        compressionRatio: result.compression_rate.toFixed(1),
+        processingTime: `${((endTime - startTime) / 1000).toFixed(1)}s`,
       })
-    } catch (error) {
-      alert("Error generating summary. Please try again.")
+      // Clear uploaded files after successful summary
+      setUploadedFiles([])
+    } catch (err: any) {
+      setError(err.message || "An unknown error occurred.")
     } finally {
       setIsLoading(false)
     }
@@ -107,14 +108,8 @@ export function TextInputSection() {
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
     if (files && files.length > 0) {
-      Array.from(files).forEach((file) => {
-        const reader = new FileReader()
-        reader.onload = (event) => {
-          const content = event.target?.result as string
-          setUploadedFiles((prev) => [...prev, { name: file.name, content }])
-        }
-        reader.readAsText(file)
-      })
+      // For simplicity, replacing files on new upload.
+      setUploadedFiles(Array.from(files))
       e.target.value = ""
     }
   }
@@ -132,8 +127,15 @@ export function TextInputSection() {
 
       <Card className="bg-muted border-border p-6">
         <div className="space-y-4">
+          {error && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Error</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
           <div className="flex items-start gap-2 bg-muted rounded-full px-3 py-2 border-0">
-            {/* Upload button on the left - icon only */}
             <Label htmlFor="file-upload" className="cursor-pointer mt-1">
               <Button
                 type="button"
@@ -153,7 +155,7 @@ export function TextInputSection() {
             <input
               id="file-upload"
               type="file"
-              accept=".txt,.pdf,.doc,.docx"
+              accept=".txt,.pdf,.docx"
               onChange={(e) => {
                 handleFileUpload(e)
                 setFileButtonClicked(true)
@@ -168,12 +170,11 @@ export function TextInputSection() {
               value={inputText}
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
-              placeholder=""
+              placeholder="Paste your text here to summarize..."
               rows={1}
               className="flex-1 min-h-[40px] max-h-[200px] px-4 py-2 bg-transparent border-0 text-foreground placeholder:text-muted-foreground focus:outline-none resize-none overflow-y-auto"
             />
 
-            {/* Summarize button on the right - icon only */}
             <Button
               onClick={handleTextSubmit}
               disabled={isLoading || inputText.trim().length === 0}
@@ -200,7 +201,7 @@ export function TextInputSection() {
                       <Upload className="h-4 w-4 text-primary flex-shrink-0" />
                       <span className="text-sm text-foreground truncate">{file.name}</span>
                       <span className="text-xs text-muted-foreground flex-shrink-0">
-                        ({file.content.split(/\s+/).filter((w) => w.length > 0).length} words)
+                        ({(file.size / 1024).toFixed(2)} KB)
                       </span>
                     </div>
                     <Button
@@ -214,6 +215,9 @@ export function TextInputSection() {
                   </div>
                 ))}
               </div>
+              <Button onClick={handleFileSubmit} disabled={isLoading} className="w-full">
+                {isLoading ? "Summarizing..." : "Summarize File"}
+              </Button>
             </div>
           )}
         </div>

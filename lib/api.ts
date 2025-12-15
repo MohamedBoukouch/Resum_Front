@@ -73,9 +73,51 @@ export const authAPI = {
 // --------------------
 // User API
 // --------------------
+
 export const userAPI = {
   updateMe: async (data: Record<string, any>) =>
     fetchAPI("/users/me", { method: "PUT", body: JSON.stringify(data) }),
 
 
+}
+
+// --------------------
+// Summarization API
+// --------------------
+export const summarizationAPI = {
+  generateSummary: async (text: string) =>
+    fetchAPI("/summarization/generate", {
+      method: "POST",
+      body: JSON.stringify({ text }),
+    }),
+
+  getHistory: async () => fetchAPI("/summarization/history"),
+
+  getSummary: async (id: string) => fetchAPI(`/summarization/${id}`),
+
+  deleteSummary: async (id: string) =>
+    fetchAPI(`/summarization/${id}`, { method: "DELETE" }),
+
+  uploadFile: async (file: File) => {
+    const formData = new FormData()
+    formData.append("file", file)
+
+    const token = getToken()
+    const headers: Record<string, string> = {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    }
+
+    const res = await fetch(`${API_BASE_URL}/summarization/upload`, {
+      method: "POST",
+      body: formData,
+      headers,
+    })
+
+    if (!res.ok) {
+      const errData = await res.json().catch(() => null)
+      throw new Error(errData?.detail || "API Error")
+    }
+
+    return res.json()
+  },
 }
