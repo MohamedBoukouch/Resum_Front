@@ -11,6 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { getUser, removeToken, removeUser } from "@/lib/api"
 
 export function DashboardHeader() {
   const router = useRouter()
@@ -21,17 +22,19 @@ export function DashboardHeader() {
   useEffect(() => {
     setIsMounted(true)
 
-    // Get user from localStorage
-    const user = localStorage.getItem("user")
-    if (user) {
-      const userData = JSON.parse(user)
-      setUserEmail(userData.email)
+    const userData = getUser()
+    if (!userData) {
+      removeToken()
+      removeUser()
+      router.push("/login")
+      return
     }
+    setUserEmail(userData.email)
 
-    // Check current theme
+    // Set theme
     const isDarkMode = document.documentElement.classList.contains("dark")
     setIsDark(isDarkMode)
-  }, [])
+  }, [router])
 
   const toggleTheme = () => {
     if (document.documentElement.classList.contains("dark")) {
@@ -46,13 +49,12 @@ export function DashboardHeader() {
   }
 
   const handleLogout = () => {
-    localStorage.removeItem("user")
+    removeToken()
+    removeUser()
     router.push("/login")
   }
 
-  if (!isMounted) {
-    return null
-  }
+  if (!isMounted) return null
 
   return (
     <header className="border-b border-border bg-card">
@@ -88,7 +90,10 @@ export function DashboardHeader() {
             <DropdownMenuContent align="end" className="w-56">
               <div className="px-2 py-1.5 text-sm text-muted-foreground break-all">{userEmail}</div>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => router.push("/profile")} className="cursor-pointer">
+              <DropdownMenuItem
+                onClick={() => router.push("/profile")}
+                className="cursor-pointer"
+              >
                 <Settings className="h-4 w-4 mr-2" />
                 Profile Settings
               </DropdownMenuItem>
