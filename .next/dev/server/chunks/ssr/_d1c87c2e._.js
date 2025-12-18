@@ -434,20 +434,33 @@ const userAPI = {
         })
 };
 const summarizationAPI = {
-    generateSummary: async (text)=>fetchAPI("/summarization/generate", {
+    generateSummary: async (data)=>fetchAPI("/summarization/generate", {
             method: "POST",
             body: JSON.stringify({
-                text
+                text: data.text,
+                mode: data.mode || "summary",
+                max_words: data.max_words || 200,
+                user_prompt: data.user_prompt
             })
         }),
-    getHistory: async ()=>fetchAPI("/summarization/history"),
+    getHistory: async (params)=>{
+        const queryParams = new URLSearchParams();
+        if (params?.skip) queryParams.append("skip", params.skip.toString());
+        if (params?.limit) queryParams.append("limit", params.limit.toString());
+        const query = queryParams.toString();
+        return fetchAPI(`/summarization/history${query ? `?${query}` : ""}`);
+    },
     getSummary: async (id)=>fetchAPI(`/summarization/${id}`),
     deleteSummary: async (id)=>fetchAPI(`/summarization/${id}`, {
             method: "DELETE"
         }),
-    uploadFile: async (file)=>{
+    uploadFile: async (data)=>{
         const formData = new FormData();
-        formData.append("file", file);
+        formData.append("file", data.file);
+        // Add optional parameters as form fields
+        if (data.mode) formData.append("mode", data.mode);
+        if (data.max_words) formData.append("max_words", data.max_words.toString());
+        if (data.user_prompt) formData.append("user_prompt", data.user_prompt);
         const token = getToken();
         const headers = {
             ...token ? {

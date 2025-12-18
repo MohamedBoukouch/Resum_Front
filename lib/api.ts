@@ -85,39 +85,67 @@ export const userAPI = {
 // Summarization API
 // --------------------
 export const summarizationAPI = {
-  generateSummary: async (text: string) =>
-    fetchAPI("/summarization/generate", {
-      method: "POST",
-      body: JSON.stringify({ text }),
+  generateSummary: async (data: {
+  text: string
+  mode?: "summary" | "explanation" | "analysis" | "key_points" | "eli5"
+  max_words?: number
+  user_prompt?: string
+}) =>
+  fetchAPI("/summarization/generate", {
+    method: "POST",
+    body: JSON.stringify({
+      text: data.text,
+      mode: data.mode || "summary",
+      max_words: data.max_words || 200,
+      user_prompt: data.user_prompt,
     }),
+  }),
 
-  getHistory: async () => fetchAPI("/summarization/history"),
+  getHistory: async (params?: { skip?: number; limit?: number }) => {
+  const queryParams = new URLSearchParams()
+  if (params?.skip) queryParams.append("skip", params.skip.toString())
+  if (params?.limit) queryParams.append("limit", params.limit.toString())
+  
+  const query = queryParams.toString()
+  return fetchAPI(`/summarization/history${query ? `?${query}` : ""}`)
+},
 
   getSummary: async (id: string) => fetchAPI(`/summarization/${id}`),
+  
 
   deleteSummary: async (id: string) =>
     fetchAPI(`/summarization/${id}`, { method: "DELETE" }),
 
-  uploadFile: async (file: File) => {
-    const formData = new FormData()
-    formData.append("file", file)
+  uploadFile: async (data: {
+  file: File
+  mode?: "summary" | "explanation" | "analysis" | "key_points" | "eli5"
+  max_words?: number
+  user_prompt?: string
+}) => {
+  const formData = new FormData()
+  formData.append("file", data.file)
+  
+  // Add optional parameters as form fields
+  if (data.mode) formData.append("mode", data.mode)
+  if (data.max_words) formData.append("max_words", data.max_words.toString())
+  if (data.user_prompt) formData.append("user_prompt", data.user_prompt)
 
-    const token = getToken()
-    const headers: Record<string, string> = {
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    }
+  const token = getToken()
+  const headers: Record<string, string> = {
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  }
 
-    const res = await fetch(`${API_BASE_URL}/summarization/upload`, {
-      method: "POST",
-      body: formData,
-      headers,
-    })
+  const res = await fetch(`${API_BASE_URL}/summarization/upload`, {
+    method: "POST",
+    body: formData,
+    headers,
+  })
 
-    if (!res.ok) {
-      const errData = await res.json().catch(() => null)
-      throw new Error(errData?.detail || "API Error")
-    }
+  if (!res.ok) {
+    const errData = await res.json().catch(() => null)
+    throw new Error(errData?.detail || "API Error")
+  }
 
-    return res.json()
-  },
+  return res.json()
+},
 }
